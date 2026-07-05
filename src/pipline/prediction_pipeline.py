@@ -90,6 +90,11 @@ class VehicleDataClassifier:
         """
         try:
             self.prediction_pipeline_config = prediction_pipeline_config
+
+            self.model = Proj1Estimator(
+                bucket_name=self.prediction_pipeline_config.model_bucket_name,
+                model_path=self.prediction_pipeline_config.model_file_path,
+            )
         except Exception as e:
             raise MyException(e, sys)
 
@@ -100,13 +105,8 @@ class VehicleDataClassifier:
         """
         try:
             logging.info("Entered predict method of VehicleDataClassifier class")
-            model = Proj1Estimator(
-                bucket_name=self.prediction_pipeline_config.model_bucket_name,
-                model_path=self.prediction_pipeline_config.model_file_path,
-            )
-            result =  model.predict(dataframe)
             
-            return result
-        
+            return self.model.predict(dataframe)
+            
         except Exception as e:
             raise MyException(e, sys)

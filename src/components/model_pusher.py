@@ -1,4 +1,6 @@
 import sys
+import os
+import shutil
 
 from src.cloud_storage.aws_storage import SimpleStorageService
 from src.exception import MyException
@@ -37,8 +39,18 @@ class ModelPusher:
             
             logging.info("Uploading new model to S3 bucket....")
             self.proj1_estimator.save_model(from_file=self.model_evaluation_artifact.trained_model_path)
+
+            # Copy the accepted model locally for immediate fast local prediction fallback
+            local_model_path = os.path.join("model", "model.pkl")
+            try:
+                os.makedirs(os.path.dirname(local_model_path), exist_ok=True)
+                shutil.copy(self.model_evaluation_artifact.trained_model_path, local_model_path)
+                logging.info(f"Successfully saved a copy of the accepted model locally at {local_model_path}")
+            except Exception as e:
+                logging.error(f"Failed to copy accepted model to local path: {e}")
+
             model_pusher_artifact = ModelPusherArtifact(bucket_name=self.model_pusher_config.bucket_name,
-                                                        s3_model_path=self.model_pusher_config.s3_model_key_path)
+                                                         s3_model_path=self.model_pusher_config.s3_model_key_path)
 
             logging.info("Uploaded artifacts folder to s3 bucket")
             logging.info(f"Model pusher artifact: [{model_pusher_artifact}]")

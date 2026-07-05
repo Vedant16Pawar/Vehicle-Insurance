@@ -9,6 +9,7 @@ from src.exception import MyException
 from botocore.exceptions import ClientError
 from pandas import DataFrame,read_csv
 import pickle
+import time
 
 
 class SimpleStorageService:
@@ -111,25 +112,27 @@ class SimpleStorageService:
         except Exception as e:
             raise MyException(e, sys) from e
 
+    
+
     def load_model(self, model_name: str, bucket_name: str, model_dir: str = None) -> object:
-        """
-        Loads a serialized model from the specified S3 bucket.
-
-        Args:
-            model_name (str): Name of the model file in the bucket.
-            bucket_name (str): Name of the S3 bucket.
-            model_dir (str): Directory path within the bucket.
-
-        Returns:
-            object: The deserialized model object.
-        """
         try:
             model_file = model_dir + "/" + model_name if model_dir else model_name
+
+            start = time.time()
             file_object = self.get_file_object(model_file, bucket_name)
+            print("get_file_object:", time.time() - start)
+
+            start = time.time()
             model_obj = self.read_object(file_object, decode=False)
+            print("read_object:", time.time() - start)
+
+            start = time.time()
             model = pickle.loads(model_obj)
+            print("pickle.loads:", time.time() - start)
+
             logging.info("Production model loaded from S3 bucket.")
             return model
+
         except Exception as e:
             raise MyException(e, sys) from e
 

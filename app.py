@@ -83,8 +83,13 @@ async def index(request: Request):
     Renders the main HTML form page for vehicle data input.
     """
     return templates.TemplateResponse(
-            "vehicledata.html",{"request": request, "context": "Rendering"})
-
+        request=request,
+        name="vehicledata.html",
+        context={
+            "request": request,
+            "context": "Rendering"
+        }
+    )
 # Route to trigger the model training process
 @app.get("/train")
 async def trainRouteClient():
@@ -99,6 +104,8 @@ async def trainRouteClient():
     except Exception as e:
         return Response(f"Error Occurred! {e}")
 
+# Initialize the prediction pipeline
+model_predictor = VehicleDataClassifier()
 # Route to handle form submission and make predictions
 @app.post("/")
 async def predictRouteClient(request: Request):
@@ -126,8 +133,7 @@ async def predictRouteClient(request: Request):
         # Convert form data into a DataFrame for the model
         vehicle_df = vehicle_data.get_vehicle_input_data_frame()
 
-        # Initialize the prediction pipeline
-        model_predictor = VehicleDataClassifier()
+        
 
         # Make a prediction and retrieve the result
         value = model_predictor.predict(dataframe=vehicle_df)[0]
@@ -137,8 +143,12 @@ async def predictRouteClient(request: Request):
 
         # Render the same HTML page with the prediction result
         return templates.TemplateResponse(
-            "vehicledata.html",
-            {"request": request, "context": status},
+            request=request,
+            name="vehicledata.html",
+            context={
+                "request": request,
+                "context": status,
+            },
         )
         
     except Exception as e:
